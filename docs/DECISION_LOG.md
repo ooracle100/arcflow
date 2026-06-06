@@ -112,3 +112,63 @@ Reasoning:              SQLite-backed polling is simple, crash-resilient, and su
 Impact:                 Webhook delivery is best-effort with guaranteed persistence. Failed webhooks
                         remain in the database for manual inspection or future retry.
 Approved by:            Product Owner (pending review)
+
+---
+
+## DECISION LOG 007
+Date:                   2026-06-06
+Agent:                  Antigravity (Claude Opus 4.6 / Gemini 3.1 Pro)
+Component:              backend/railway.toml — Builder configuration
+Decision:               Remove `builder = "nixpacks"` line entirely. Let Railway use its default
+                        Railpack builder, which correctly respects the buildCommand and startCommand
+                        already defined in railway.toml.
+Alternatives considered: (1) Keeping Nixpacks and adding a nixpacks.toml to force npm over pnpm —
+                        rejected, adds unnecessary config. (2) Adding pnpm install to the Nixpacks
+                        build plan — rejected, fragile and non-standard.
+Reasoning:              Nixpacks detected the root-level pnpm-lock.yaml and attempted to use pnpm,
+                        but pnpm was not available in the Nixpacks build environment. This caused a
+                        hard build failure. Railpack handles the existing `buildCommand = "npm install
+                        && npm run build"` correctly without any builder declaration.
+Impact:                 Railway deployments now succeed. No functional change to the application.
+Approved by:            Product Owner (pending review)
+
+---
+
+## DECISION LOG 008
+Date:                   2026-06-06
+Agent:                  Antigravity (Claude Opus 4.6 / Gemini 3.1 Pro)
+Component:              backend/tsconfig.json — Monorepo isolation
+Decision:               Remove `"extends": "../tsconfig.json"` and make the backend's tsconfig.json
+                        fully self-contained. Set `module` and `moduleResolution` to `NodeNext`.
+Alternatives considered: (1) Copying the root tsconfig.json into the backend folder during build —
+                        rejected, adds a brittle build step. (2) Keeping the extends and including
+                        the root tsconfig in Railway's build context — rejected, Railway only builds
+                        the root directory (`backend/`), so parent files are unavailable.
+Reasoning:              Railway sets the root directory to `backend/`, meaning the parent
+                        `../tsconfig.json` does not exist in the build container. The extends
+                        reference caused a hard TypeScript compilation failure. Making it
+                        self-contained also ensures the backend can be built independently.
+Impact:                 Backend builds succeed in isolation. `NodeNext` module resolution is required
+                        for `import.meta.url` usage in `src/db/schema.ts`.
+Approved by:            Product Owner (pending review)
+
+---
+
+## DECISION LOG 009
+Date:                   2026-06-06
+Agent:                  Antigravity (Claude Opus 4.6 / Gemini 3.1 Pro)
+Component:              backend/src/routes/demo.ts — Circular dependency removal
+Decision:               Remove `import { withArcFlow } from '@getarcflow/middleware'` and reimplement
+                        the 402 payment protection inline using the backend's own internal
+                        `chain/gateway.ts` module.
+Alternatives considered: (1) Adding @getarcflow/middleware as an npm dependency in backend/package.json
+                        — rejected, creates a circular dependency (backend depends on middleware which
+                        depends on backend for settlement). (2) Copying the middleware source into the
+                        backend — rejected, code duplication with drift risk.
+Reasoning:              The backend is the SaaS settlement authority. It should never depend on its
+                        own published SDK packages. The demo endpoint only needs the 402 challenge
+                        format and the internal settlement route, both of which are already available
+                        within the backend's own codebase.
+Impact:                 Zero files in `backend/src/` import from `@getarcflow/middleware` or
+                        `@getarcflow/client`. The demo endpoint works identically but is self-contained.
+Approved by:            Product Owner (pending review)

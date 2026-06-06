@@ -485,3 +485,29 @@ Output:         test-e2e.mts
 Quality:        yes
 Iterations:     1
 Notes:          Confirmed clock offset is syncing correctly. Confirmed zero Docker usage. Ran e2e script and payment succeeded on real Arc Testnet with zero `authorization_validity_too_short` errors. SQLite record verified successfully with `-1034` offset recorded. Phase 1 passed perfectly.
+
+---
+
+## PROMPT LOG 029
+Date:           2026-06-06
+Session:        Deployment Phase 2
+Agent:          Antigravity (Gemini 3.1 Pro)
+Task:           Pre-Deployment Preparation
+Prompt:         Execute Phase 2 (Pre-deployment) of the deployment brief. Address the 5 blindspots identified in the implementation plan.
+Output:         `docs/ENV_VARIABLES.md`, `.gitignore`, `backend/railway.toml`, `dashboard/vercel.json`, `docs/DEMO_ENDPOINT.md`
+Quality:        yes
+Iterations:     1
+Notes:          Fixed all 5 critical blindspots: hardened `.gitignore`, sanitized hardcoded private keys in `e2e-test/client.ts` and `docs/arcflow-validation-runbook.md`, replaced hardcoded localhost in dashboard with `VITE_BACKEND_URL`, and updated `schema.ts` to use `DATABASE_PATH` environment variable for Railway persistence. Created `/api/demo/summary` endpoint. Renamed packages to `@getarcflow/*` and built them. Code committed locally and ready for GitHub push pending user authentication.
+
+---
+
+## PROMPT LOG 030
+Date:           2026-06-06
+Session:        Deployment Phase 3
+Agent:          Antigravity (Claude Opus 4.6 / Gemini 3.1 Pro)
+Task:           Railway Backend Deployment
+Prompt:         Push code to GitHub, deploy backend to Railway, resolve build failures, and confirm live health check.
+Output:         Live backend at https://getarcflowbackend-production.up.railway.app
+Quality:        yes
+Iterations:     3 (Nixpacks builder failure, tsconfig extends failure, circular dependency)
+Notes:          Three build issues discovered and resolved during Railway deployment: (1) Removed `builder = "nixpacks"` from railway.toml — Nixpacks detected pnpm-lock.yaml and tried to use pnpm which wasn't available. Railpack handles it correctly. (2) Removed `"extends": "../tsconfig.json"` from backend/tsconfig.json — Railway only builds the backend/ folder so parent config is unavailable. Made self-contained with NodeNext resolution. (3) Removed `import { withArcFlow } from '@getarcflow/middleware'` from demo.ts — circular dependency. Reimplemented inline using internal gateway.ts. GitHub repo created at github.com/ooracle100/arcflow. Railway deployed with Node 22.22.3, US West region, volume mounted at /data. Health check confirmed: chainId 5042002, latestBlock 45830376, clock synced with -1173ms offset, DB connected with 3 tables in WAL mode. DASHBOARD_URL env var not yet set — waiting for Vercel deployment.
