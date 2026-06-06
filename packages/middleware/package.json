@@ -1,0 +1,33 @@
+{
+  "name": "@getarcflow/middleware",
+  "version": "1.0.0",
+  "description": "ArcFlow seller-side middleware — turn any API into a nanopayment-powered paywall in 3 lines",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsx --test src/__tests__/*.test.ts",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "viem": "^2.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": ["arcflow", "x402", "nanopayments", "arc", "usdc", "middleware"],
+  "license": "MIT"
+}

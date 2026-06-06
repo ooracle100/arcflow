@@ -1,0 +1,10 @@
+packages:
+  - 'packages/*'
+  - 'backend'
+  - 'dashboard'
+allowBuilds:
+  better-sqlite3: true
+  esbuild: true
+overrides:
+  '@arcflow/client': link:packages/client
+  '@arcflow/middleware': link:packages/middleware

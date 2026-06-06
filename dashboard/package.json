@@ -1,0 +1,16 @@
+{
+  "name": "@getarcflow/dashboard",
+  "version": "1.0.0",
+  "description": "ArcFlow dashboard — financial terminal aesthetic live feed, reconciliation, billing and monitor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 4000",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vite": "^8.0.16"
+  },
+  "license": "MIT"
+}

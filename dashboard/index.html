@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArcFlow Dashboard</title>
+
+  <!-- Google Fonts: IBM Plex Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+  <div id="layout">
+    <!-- Sidebar -->
+    <nav id="sidebar">
+      <div class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 12L12 22L22 12L12 2Z" stroke="var(--accent-main)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>ArcFlow</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#monitor" class="active">Live Feed</a></li>
+        <li><a href="#reconcile">Reconciliation</a></li>
+        <li><a href="#agents">Agents</a></li>
+        <li><a href="#billing">Billing & Tiers</a></li>
+        <li><a href="#setup">Setup</a></li>
+      </ul>
+      <div class="sidebar-footer">
+        <div class="status-indicator">
+          <span class="dot pulse"></span>
+          <span id="backend-status">Connecting...</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="app">
+      <!-- Screen content will be injected here by app.ts -->
+    </main>
+  </div>
+
+  <script type="module" src="/src/app.ts"></script>
+</body>
+</html>

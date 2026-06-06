@@ -1,0 +1,16 @@
+{
+  "name": "arcflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ArcFlow — Payment infrastructure middleware for Circle's Arc blockchain",
+  "scripts": {
+    "dev": "pnpm --filter @getarcflow/backend dev",
+    "build": "pnpm -r build",
+    "clean": "pnpm -r clean"
+  },
+  "dependencies": {
+    "@getarcflow/client": "link:packages/client",
+    "@getarcflow/middleware": "link:packages/middleware",
+    "@types/express": "^5.0.6"
+  }
+}
