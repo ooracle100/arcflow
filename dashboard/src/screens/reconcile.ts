@@ -31,13 +31,15 @@ export async function render() {
       (window as any)._reconcileAttached = true;
     }
 
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
     return `
       <div class="screen-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
         <div>
           <h1>Reconciliation</h1>
           <p>Match on-chain ArcFlow settlements with your internal billing invoices.</p>
         </div>
-        <a href="http://localhost:3000/api/export/csv" target="_blank" class="btn primary">
+        <a href="${backendUrl}/api/export/csv" target="_blank" class="btn primary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
