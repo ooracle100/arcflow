@@ -12,7 +12,7 @@ npm install @arcflow/client
 
 ## Usage
 
-Initialize the client with your wallet's private key. Make sure your wallet is funded with ARC tokens on the Arc testnet.
+Initialize the client with your wallet's private key. Make sure your wallet is funded with USDC tokens on the Arc testnet.
 
 ```typescript
 import { ArcFlowClient } from '@arcflow/client';
@@ -25,7 +25,7 @@ const arcflow = new ArcFlowClient({
 async function runAgent() {
   // Use arcflow.fetch exactly like native fetch
   // It will automatically handle the payment negotiation under the hood
-  const response = await arcflow.fetch('http://localhost:5000/api/generate-image', {
+  const response = await arcflow.fetch('https://getarcflowbackend-production.up.railway.app/api/demo/summary', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt: 'A futuristic city' })

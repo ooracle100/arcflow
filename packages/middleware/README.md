@@ -21,7 +21,7 @@ import { withArcFlow } from '@arcflow/middleware';
 const app = express();
 app.use(express.json());
 
-// Require 0.5 ARC to generate an image
+// Require 0.5 USDC to generate an image
 app.post('/api/generate-image', withArcFlow(async (req, res) => {
   // If this code runs, the payment has been verified mathematically.
   // The ArcFlow backend will automatically sweep the funds on-chain.
@@ -34,7 +34,7 @@ app.post('/api/generate-image', withArcFlow(async (req, res) => {
   price: '0.5',
   wallet: '0x2420F3440508DFAb40369F8da3EE20eBfcCdB707',
   apiKey: 'af_test_123',
-  backendUrl: 'http://localhost:3000'
+  backendUrl: 'https://getarcflowbackend-production.up.railway.app'
 }));
 
 app.listen(3000, () => console.log('API running!'));
@@ -43,6 +43,6 @@ app.listen(3000, () => console.log('API running!'));
 ## How it works
 
 1. When a client calls `/api/generate-image` without a payment, the middleware intercepts it and returns an HTTP `402 Payment Required` challenge.
-2. The client SDK (`@arcflow/client`) intercepts the 402, automatically signs a microtransaction for 0.5 ARC, and resends the request with the signature.
+2. The client SDK (`@arcflow/client`) intercepts the 402, automatically signs a microtransaction for 0.5 USDC, and resends the request with the signature.
 3. The middleware verifies the signature, nonce, and amount, then forwards the payment payload to your local ArcFlow backend for settlement.
 4. Your route handler executes normally.
