@@ -11,13 +11,13 @@ ArcFlow is a decentralized **HTTP 402 (Payment Required)** negotiation protocol.
 Instead of bouncing an AI Agent when it hits a paywall, ArcFlow seamlessly negotiates a microtransaction in the background using cryptographic EIP-712 signatures. 
 
 ### Architecture Components Delivered:
-1. **The Seller Middleware (`@arcflow/middleware`)**
+1. **The Seller Middleware (`@getarcflow/middleware`)**
    - An extremely lightweight NPM package.
    - Allows API developers to paywall any endpoint in exactly 3 lines of code.
    - Does not require Docker, databases, or complex infrastructure for the seller.
    - Mathematically verifies the cryptographic validity of incoming payments.
 
-2. **The Buyer Client SDK (`@arcflow/client`)**
+2. **The Buyer Client SDK (`@getarcflow/client`)**
    - A drop-in replacement for the native `fetch` API for AI Agents.
    - Automatically intercepts 402 challenges, signs the payment using the agent's wallet, and retries the request silently. 
    - Allows AI Agents to traverse the internet, paying for data fractions of a cent at a time, entirely autonomously.
