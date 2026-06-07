@@ -97,3 +97,14 @@ Reason:         The backend cannot import from its own published npm packages â€
                 challenge payload directly and forwards settlement to the backend's internal
                 `/api/payments/settle` route.
 Approved by:    Product Owner (pending review)
+
+---
+
+## CHANGE LOG 008
+Date:           2026-06-07
+Agent:          Antigravity
+Component:      dashboard/src/
+Original spec:  The build brief specified USDC as the payment token. Dashboard drifted and used ARC. Logo was not clickable. Clock offset showed undefined.
+Change made:    Replaced "ARC" with "USDC" in UI strings (agents.ts, monitor.ts, reconcile.ts, billing.ts). Wrapped ArcFlow logo in index.html in an <a> tag pointing to #monitor. Fixed health check reading in app.ts from health.arc.clockOffsetMs to health.clock.offsetMs.
+Reason:         Align with original spec for token currency, improve navigation, and correct data access path for backend health response.
+Approved by:    Product Owner (pending review)

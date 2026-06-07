@@ -100,7 +100,7 @@ setInterval(async () => {
     const health = await apiFetch('/health');
     if (dot && text) {
       dot.className = 'dot online pulse';
-      text.textContent = `Block ${health.arc.latestBlock} (${health.arc.clockOffsetMs}ms sync)`;
+      text.textContent = `Block ${health.arc.latestBlock} (${health.clock.offsetMs}ms sync)`;
     }
   } catch (e) {
     if (dot && text) {

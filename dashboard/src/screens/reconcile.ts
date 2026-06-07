@@ -81,7 +81,7 @@ export async function render() {
               ${unmatched.map((p: any) => `
                 <tr>
                   <td><span class="code-string" style="cursor:pointer" onclick="document.getElementById('af_ref_input').value='${p.af_ref}'">${p.af_ref}</span></td>
-                  <td>${formatToken(p.amount)} ARC</td>
+                  <td>${formatToken(p.amount)} USDC</td>
                   <td>${formatDate(p.created_at)}</td>
                 </tr>
               `).join('')}

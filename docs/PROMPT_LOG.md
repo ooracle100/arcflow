@@ -511,3 +511,16 @@ Output:         Live backend at https://getarcflowbackend-production.up.railway.
 Quality:        yes
 Iterations:     3 (Nixpacks builder failure, tsconfig extends failure, circular dependency)
 Notes:          Three build issues discovered and resolved during Railway deployment: (1) Removed `builder = "nixpacks"` from railway.toml — Nixpacks detected pnpm-lock.yaml and tried to use pnpm which wasn't available. Railpack handles it correctly. (2) Removed `"extends": "../tsconfig.json"` from backend/tsconfig.json — Railway only builds the backend/ folder so parent config is unavailable. Made self-contained with NodeNext resolution. (3) Removed `import { withArcFlow } from '@getarcflow/middleware'` from demo.ts — circular dependency. Reimplemented inline using internal gateway.ts. GitHub repo created at github.com/ooracle100/arcflow. Railway deployed with Node 22.22.3, US West region, volume mounted at /data. Health check confirmed: chainId 5042002, latestBlock 45830376, clock synced with -1173ms offset, DB connected with 3 tables in WAL mode. DASHBOARD_URL env var not yet set — waiting for Vercel deployment.
+
+---
+
+## PROMPT LOG 031
+Date:           2026-06-07
+Session:        Phase 4 (Dashboard Fixes)
+Agent:          Antigravity
+Task:           Fix Dashboard Currency, Clock Offset, and Logo
+Prompt:         "Bug 1 — Wrong currency symbol (ARC should be USDC)... Bug 2 — Clock offset showing undefined... Also shouldnt Arcflow and its logo on the top left be clickable..."
+Output:         Fixed logo clickability in index.html, fixed clock offset path in app.ts, and replaced ARC with USDC in all 4 dashboard screen components.
+Quality:        yes
+Iterations:     1
+Notes:          Replaced ARC with USDC across agents.ts, monitor.ts, reconcile.ts, and billing.ts to align with the original spec. Changed health.arc.clockOffsetMs to health.clock.offsetMs in app.ts. Wrapped the sidebar logo in an <a href="#monitor"> tag in index.html.

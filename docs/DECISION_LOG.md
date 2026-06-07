@@ -172,3 +172,13 @@ Reasoning:              The backend is the SaaS settlement authority. It should 
 Impact:                 Zero files in `backend/src/` import from `@getarcflow/middleware` or
                         `@getarcflow/client`. The demo endpoint works identically but is self-contained.
 Approved by:            Product Owner (pending review)
+
+---
+
+## DECISION LOG 010
+Component:              dashboard/src/screens/
+Decision:               Change all UI currency display references from "ARC" to "USDC".
+Alternatives considered: Leave as ARC.
+Reasoning:              The original build brief explicitly states that USDC is the payment token. "Arc" is the blockchain network name. The dashboard had drifted from the spec and incorrectly displayed ARC as the currency. Correcting to USDC ensures consistency with the underlying smart contracts and the intended product design.
+Impact:                 All screens now correctly show USDC for volumes, tiers, and fees.
+Approved by:            Product Owner (pending review)

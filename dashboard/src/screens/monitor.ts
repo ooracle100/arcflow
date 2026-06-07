@@ -14,7 +14,7 @@ export async function render() {
     const chartHtml = stats.dailyVolume.slice(0, 30).reverse().map((d: any, i: number) => {
       const height = (parseFloat(d.volume) / maxVol) * 100;
       return `<rect x="${i * (100 / 30)}%" y="${100 - height}%" width="2%" height="${height}%" fill="var(--accent-main)" opacity="0.8">
-        <title>${d.date}: ${formatToken(d.volume)} ARC</title>
+        <title>${d.date}: ${formatToken(d.volume)} USDC</title>
       </rect>`;
     }).join('');
 
@@ -28,7 +28,7 @@ export async function render() {
       <div class="grid-4" style="margin-bottom: 24px;">
         <div class="stat-card">
           <div class="stat-label">Total Volume</div>
-          <div class="stat-value">${formatToken(stats.totalVolume)} <span style="font-size:14px;color:var(--text-muted)">ARC</span></div>
+          <div class="stat-value">${formatToken(stats.totalVolume)} <span style="font-size:14px;color:var(--text-muted)">USDC</span></div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Transactions</div>
@@ -61,7 +61,7 @@ export async function render() {
               <thead>
                 <tr>
                   <th>Agent</th>
-                  <th>Amount (ARC)</th>
+                  <th>Amount (USDC)</th>
                   <th>Endpoint</th>
                   <th>Status</th>
                   <th>Time</th>

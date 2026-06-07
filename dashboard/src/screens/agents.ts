@@ -74,7 +74,7 @@ export async function render() {
     return `
       <div class="screen-header">
         <h1>Agents</h1>
-        <p>Monitor autonomous agents spending ARC on your APIs.</p>
+        <p>Monitor autonomous agents spending USDC on your APIs.</p>
       </div>
 
       <div class="card table-container">
@@ -84,7 +84,7 @@ export async function render() {
           <thead>
             <tr>
               <th>Wallet</th>
-              <th>Total Spent (ARC)</th>
+              <th>Total Spent (USDC)</th>
               <th>Tx Count</th>
               <th>First Seen</th>
               <th>Last Seen</th>
