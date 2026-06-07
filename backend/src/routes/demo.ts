@@ -59,32 +59,36 @@ demoRouter.get('/api/demo/summary', async (req: Request, res: Response): Promise
 
   // ─── Case B: Payment signature present → settle via internal route ─
   try {
-    // Forward to the backend's own /api/payments/settle endpoint internally
-    const settleRes = await fetch(`http://localhost:${process.env.PORT || 3000}/api/payments/settle`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer demo-api-key`,
-      },
-      body: JSON.stringify({
-        paymentSignature,
-        requirements: {
-          scheme: 'exact',
-          network: arc.NETWORK,
-          asset: arc.USDC,
-          amount: usdcToAtomic(PRICE),
-          payTo: sellerAddress,
-          maxTimeoutSeconds: 345600,
-          extra: {
-            name: 'GatewayWalletBatched',
-            version: '1',
-            verifyingContract: arc.GATEWAY_WALLET,
+        const payloadJson = Buffer.from(paymentSignature, 'base64').toString('utf-8');
+        const parsedSignature = JSON.parse(payloadJson);
+
+        // Forward to the backend's own /api/payments/settle endpoint internally
+        const settleRes = await fetch(`http://localhost:${process.env.PORT || 3000}/api/payments/settle`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer demo-api-key`,
           },
-        },
-        endpoint: req.originalUrl,
-        method: req.method,
-      }),
-    });
+          body: JSON.stringify({
+            paymentSignature,
+            requirements: {
+              scheme: 'exact',
+              network: arc.NETWORK,
+              asset: arc.USDC,
+              amount: usdcToAtomic(PRICE),
+              payTo: sellerAddress,
+              maxTimeoutSeconds: 345600,
+              extra: {
+                name: 'GatewayWalletBatched',
+                version: '1',
+                verifyingContract: arc.GATEWAY_WALLET,
+              },
+            },
+            endpoint: req.originalUrl,
+            method: req.method,
+            memo: parsedSignature.memo,
+          }),
+        });
 
     const result = await settleRes.json() as any;
 
