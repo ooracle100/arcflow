@@ -108,3 +108,11 @@ Original spec:  The build brief specified USDC as the payment token. Dashboard d
 Change made:    Replaced "ARC" with "USDC" in UI strings (agents.ts, monitor.ts, reconcile.ts, billing.ts). Wrapped ArcFlow logo in index.html in an <a> tag pointing to #monitor. Fixed health check reading in app.ts from health.arc.clockOffsetMs to health.clock.offsetMs.
 Reason:         Align with original spec for token currency, improve navigation, and correct data access path for backend health response.
 Approved by:    Product Owner (pending review)
+
+## [1.0.1] - 2026-06-07
+### Fixed
+- Fixed missing 'memo' propagation in the backend demo endpoint which caused settlement failures.
+- Diagnosed and assisted user in fixing the hidden newline character in the SELLER_ADDRESS Railway variable that crashed the Viem signer.
+
+### Fixed
+- Fixed an async race condition in the dashboard router that caused ghost intervals to overwrite the active screen with the Live Feed.

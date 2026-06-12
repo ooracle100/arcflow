@@ -7,6 +7,7 @@ import { render as renderSetup } from './screens/setup.js';
 
 // Global state
 let currentRefreshInterval: number | null = null;
+let globalRenderId = 0;
 
 // Helper: Format amounts to 6 decimals
 export const formatToken = (amount: string | number) => {
@@ -36,6 +37,7 @@ export async function apiFetch(path: string, options?: RequestInit) {
 
 // Router
 async function navigate() {
+  const currentRenderId = ++globalRenderId;
   const hash = window.location.hash || '#monitor';
   const appEl = document.getElementById('app');
   if (!appEl) return;
@@ -73,8 +75,14 @@ async function navigate() {
     await renderScreen();
 
     // Setup auto-refresh for live data (every 10s)
-    if (['#monitor', '#agents'].includes(hash)) {
-      currentRefreshInterval = setInterval(renderScreen, 10000) as any;
+    if (currentRenderId === globalRenderId) {
+      if (['#monitor', '#agents'].includes(hash)) {
+        currentRefreshInterval = setInterval(() => {
+          if (currentRenderId === globalRenderId) {
+            renderScreen();
+          }
+        }, 10000) as any;
+      }
     }
 
   } catch (err) {

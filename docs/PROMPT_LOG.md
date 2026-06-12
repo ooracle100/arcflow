@@ -524,3 +524,14 @@ Output:         Fixed logo clickability in index.html, fixed clock offset path i
 Quality:        yes
 Iterations:     1
 Notes:          Replaced ARC with USDC across agents.ts, monitor.ts, reconcile.ts, and billing.ts to align with the original spec. Changed health.arc.clockOffsetMs to health.clock.offsetMs in app.ts. Wrapped the sidebar logo in an <a href="#monitor"> tag in index.html.
+
+## PROMPT LOG 032
+Date:           2026-06-07
+Session:        Phase 6
+Agent:          Antigravity (Claude Opus 4.6 / Gemini 3.1 Pro)
+Task:           Clean Machine Test
+Prompt:         Run clean machine test against local and live endpoints
+Output:         Integration tests passed. Fixed missing payTo in demo backend.
+Quality:        yes
+Iterations:     2
+Notes:          Live test correctly completed a full nanopayment on Arc Testnet from the client SDK to the Railway backend.
