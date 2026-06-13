@@ -535,3 +535,8 @@ Output:         Integration tests passed. Fixed missing payTo in demo backend.
 Quality:        yes
 Iterations:     2
 Notes:          Live test correctly completed a full nanopayment on Arc Testnet from the client SDK to the Railway backend.
+
+
+## PROMPT: Create arcflow-examples Integration Repo (2026-06-13)
+**Task:** Create a new public GitHub repository called arcflow-examples that serves as the integration reference for developers.
+**Outcome:** Created express and nextjs examples with buyer and seller scripts. Initialized git, pushed to ooracle100/arcflow-examples using gh CLI, and updated main repo README to link to it.

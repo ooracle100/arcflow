@@ -182,3 +182,12 @@ Alternatives considered: Leave as ARC.
 Reasoning:              The original build brief explicitly states that USDC is the payment token. "Arc" is the blockchain network name. The dashboard had drifted from the spec and incorrectly displayed ARC as the currency. Correcting to USDC ensures consistency with the underlying smart contracts and the intended product design.
 Impact:                 All screens now correctly show USDC for volumes, tiers, and fees.
 Approved by:            Product Owner (pending review)
+
+## DECISION LOG 011
+Date:                   2026-06-13
+Agent:                  Antigravity
+Component:              Examples Repository
+Decision:               Create a standalone GitHub repository (arcflow-examples) for integration references instead of bloating the main repo.
+Reasoning:              The main repo contains the core SDK and backend. Examples should be clean, copy-pasteable, and isolated so developers aren't overwhelmed by mono-repo complexity.
+Impact:                 Main repo stays clean. Examples are accessible at github.com/ooracle100/arcflow-examples.
+Approved by:            Product Owner
