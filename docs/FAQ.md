@@ -64,3 +64,9 @@ We still talk about paywalls because the API is still protected (the seller stil
 **The Conclusion that birthed ArcFlow:**
 After that validation test, we looked at the code we had to write and came to a massive realization: **If it took us hours of debugging cryptographic time-sync errors just to send $0.01 on Arc, an average AI developer is never going to do this. They will just give up.** 
 We took all of that brutal, low-level blockchain math and hid it inside the `@getarcflow/middleware` and `@getarcflow/client` packages so developers can use it in 3 lines of code.
+
+### Q: Did ArcFlow tests use real cryptocurrency or just simulated math?
+**A:** We used **real Testnet USDC** interacting with **real smart contracts** deployed on the Arc blockchain. Before an agent can buy data, it executes a real on-chain transaction to deposit funds into the Arc Gateway Smart Contract. When the agent buys data for $0.05, the cryptographic signature it hands the seller is mathematically backed by those locked funds. The seller can submit that signature to the blockchain, and the contract instantly releases the funds directly to the seller's wallet. It is cryptographically bulletproof.
+
+### Q: Can nanopayments cost less than $0.05? What about fractions of a cent?
+**A:** Absolutely. True nanopayments can be **$0.0001** (a fraction of a cent) or even less. If every payment required an instant on-chain transaction, a $0.0001 payment would be impossible because the blockchain gas fee would cost more than the payment itself. Because ArcFlow uses an off-chain signature protocol, the cost to generate and verify the signature is exactly **$0.00**. An AI agent can make ten thousand API requests at $0.0001 each. The API seller collects all 10,000 signatures, and once they add up to $1.00, the seller submits them in **one single batch** to the blockchain. The seller only pays the gas fee once, unlocking the ability to charge microscopic fractions of a cent!
