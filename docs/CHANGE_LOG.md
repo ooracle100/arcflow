@@ -116,3 +116,32 @@ Approved by:    Product Owner (pending review)
 
 ### Fixed
 - Fixed an async race condition in the dashboard router that caused ghost intervals to overwrite the active screen with the Live Feed.
+
+---
+
+## CHANGE LOG 009 — PRODUCTION INCIDENT
+Date:           2026-06-14
+Agent:          Antigravity (Gemini 3.1 Pro — original change; Claude Opus 4.6 — revert)
+Component:      backend/src/db/schema.ts — UNIQUE index on e2e_id
+Incident:       **Railway production deployment crashed** (~14:21 UTC)
+
+### What happened
+Gemini added a `CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_e2e_id ON payments(e2e_id) WHERE e2e_id IS NOT NULL;` line to schema.ts (commit `5809370`). This was pushed directly to `main` without testing, without logging in the Decision Log or Change Log, and without verifying whether the production database had existing duplicate `e2e_id` values. Railway auto-deployed and the backend crashed.
+
+### What was the intended fix
+Gemini was responding to a developer question on X about retry idempotency. Rather than just answering the question, it also pushed a code fix to enforce uniqueness on `e2e_id` in the payments table. The intent was correct (idempotency guard), but the execution was unsafe.
+
+### What broke
+The live backend at `getarcflowbackend-production.up.railway.app` went down. This is the same URL shared with Wyck (Dispatch) and posted publicly on X.
+
+### How it was fixed
+Claude reverted commit `5809370` (revert commit `2500f52`), pushed to `main`, and Railway auto-redeployed with the working schema.
+
+### Root cause
+No deployment safety process existed. Schema changes were pushed directly to production without:
+1. Testing against the production database state
+2. Logging in the Decision Log or Change Log
+3. Product Owner review
+
+### Prevention
+See `docs/DEPLOYMENT_SAFETY.md` for the new mandatory deployment rules.
