@@ -73,3 +73,32 @@ We took all of that brutal, low-level blockchain math and hid it inside the `@ge
 
 ### Q: When I visit a protected ArcFlow endpoint in my browser, it just returns `{}`. Is it broken?
 **A:** No, that means it is working perfectly! When a standard web browser requests the page, it doesn't have an Arc wallet or private key attached. The ArcFlow middleware intercepts the request and returns an **HTTP 402 (Payment Required)** status code. The cryptographic challenge is sent back hidden inside the `PAYMENT-REQUIRED` HTTP header. Because a normal browser doesn't know how to negotiate an AI nanopayment, it ignores the header and simply displays the empty JSON body (`{}`). If an autonomous Agent calls that exact same URL using `arcflow.fetch()`, the agent reads the hidden header, signs the payment, and the server returns the actual protected data instead of `{}`.
+
+---
+
+## Community Questions
+
+*Questions from developers in the wild, answered honestly.*
+
+### Q: How does ArcFlow handle retries under unstable networks? Can an agent get double-charged?
+*(Source: X reply, 2026-06-14)*
+
+**A:** This is an important edge case. Here is the honest current state:
+
+**What ArcFlow handles today:**
+- **Clock sync** is fully automatic — the `#1` cause of raw x402 failures is eliminated.
+- **Idempotency guard via `endToEndId`:** The backend enforces a `UNIQUE` constraint on the `e2e_id` column in the payments table. If the same `endToEndId` is submitted twice, the backend rejects the duplicate with a `409 PAYMENT_ALREADY_SETTLED` response. This prevents double-charging as long as the developer passes a stable, deterministic `endToEndId`.
+
+**What the developer needs to do (for now):**
+- Pass a stable `endToEndId` when calling `arcflow.fetch()`:
+  ```js
+  await arcflow.fetch(url, { endToEndId: 'my-task-12345' });
+  ```
+- Wrap `arcflow.fetch()` in their own retry logic (e.g., try/catch with exponential backoff) and reuse the same `endToEndId` across retries.
+
+**What is not yet built (roadmap):**
+- The client SDK does not auto-retry on network failure. If `fetch()` throws due to a dropped connection, the error propagates to the caller.
+- If `endToEndId` is not explicitly passed, the SDK auto-generates a new random one per call, meaning the idempotency guard will not fire on retry.
+
+**Public reply posted on X:**
+> "Good eye. Right now ArcFlow gives you an `endToEndId` option — pass a stable one and the backend will reject duplicate settlements at the DB level, so you won't get double-charged on retry. The SDK doesn't auto-retry yet (that's on the roadmap), so for now your agent should wrap `arcflow.fetch()` in its own retry logic with a consistent endToEndId. Clock sync is handled automatically though — that's the piece that breaks most raw x402 implementations."
