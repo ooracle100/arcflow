@@ -43,6 +43,8 @@ export function initDatabase(): Database.Database {
       clock_offset_ms INTEGER
     );
 
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_e2e_id ON payments(e2e_id) WHERE e2e_id IS NOT NULL;
+
     -- agents table — spending profiles
     CREATE TABLE IF NOT EXISTS agents (
       wallet          TEXT PRIMARY KEY,
