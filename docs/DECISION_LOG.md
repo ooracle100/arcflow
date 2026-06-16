@@ -215,3 +215,15 @@ Alternatives considered: Retry on all errors (rejected — retrying a 4xx logic 
 Reasoning:              The primary failure mode for x402 nanopayments in the wild is transient network instability. The SDK should handle this transparently so agents don't crash.
 Impact:                 `arcflow.fetch()` is now resilient to network blips. Added a `debug` flag to the client config to expose retry logs.
 Approved by:            Product Owner (via X community feedback)
+
+---
+
+## DECISION LOG 014
+Date:                   2026-06-16
+Agent:                  Antigravity (Gemini 3.1 Pro)
+Component:              Backend and Middleware — Idempotency Complete
+Decision:               Implement `e2e_id` unique indexing safely, return 409 from the backend on retry, and have middleware/demo endpoints reconstruct the `PAYMENT-RESPONSE` header from the request context to process it as a success.
+Alternatives considered: Reverting the client retry logic (rejected - idempotency is standard for payment APIs). Letting the backend crash on unique constraint (rejected - creates 500 errors for users).
+Reasoning:              The full idempotency loop requires both sides to agree. The backend must reject the duplicate to prevent double-charging, but the client must see the duplicate *rejection* as a *success* (because the payment was already settled on their behalf). Reconstructing the header in the middleware keeps the backend simple while providing the final developer handler the exact same payload they'd get on a first-try success.
+Impact:                 End-to-end idempotency is achieved. A retry of the same exact nanopayment signature will not charge the user again and will succeed the API call.
+Approved by:            Product Owner

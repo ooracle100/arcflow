@@ -125,6 +125,23 @@ export function withArcFlow(
 
         const backendResult = await backendRes.json() as any;
 
+        if (backendRes.status === 409 && backendResult.error?.code === 'PAYMENT_ALREADY_SETTLED') {
+          console.info('[ArcFlow Middleware] Retry detected, payment already settled. Proceeding.');
+          
+          const responsePayload = {
+            success: true,
+            transaction: parsed.memo.af_ref,
+            network: requirements.network,
+            payer: signaturePayload.from,
+          };
+
+          const responseHeader = Buffer.from(JSON.stringify(responsePayload)).toString('base64');
+          res.set('PAYMENT-RESPONSE', responseHeader);
+
+          handler(req, res, next);
+          return;
+        }
+
         if (!backendRes.ok || !backendResult.success) {
           res.status(402).json({
             success: false,

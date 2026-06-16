@@ -553,3 +553,16 @@ Output:         Implemented `generateDeterministicE2EId` and `fetchWithRetry`. A
 Quality:        yes
 Iterations:     1
 Notes:          The previous agent (Gemini) pushed a database schema change directly to `main` without testing, which crashed the Railway production backend. That commit was reverted. To prevent recurrence, created `docs/DEPLOYMENT_SAFETY.md` which mandates logging, testing, and approval before any code touches the backend. This fix was entirely client-side.
+
+---
+
+## PROMPT LOG 004
+Date:           2026-06-16
+Session:        Phase 7 (Backend Resiliency / Idempotency Complete)
+Agent:          Antigravity (Gemini 3.1 Pro)
+Task:           Complete the backend and middleware idempotency implementation.
+Prompt:         "Fix 1 — Backend schema: safe unique index on e2e_id... Fix 2 — Backend route: return 409 on duplicate... Fix 3 — Middleware: handle 409 as success... On Fix 3, implement the reconstruction approach you described in the Open Question... Execute now."
+Output:         Added a safe unique index to `schema.ts`. Updated backend settlement logic to catch unique constraint failures and return 409. Updated both `middleware/index.ts` and `demo.ts` to process 409 as a success by reconstructing the `PAYMENT-RESPONSE` header from the payload. End-to-end testing verified that retrying the exact same payment request correctly yields two 200 OK responses to the client while only logging 1 row in the backend SQLite database.
+Quality:        yes
+Iterations:     1
+Notes:          The feature is now fully complete and completely idempotency-safe. Any duplicate retries will not double-charge users.

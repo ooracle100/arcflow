@@ -141,11 +141,12 @@ paymentsRouter.post('/api/payments/settle', (req: Request, res: Response) => {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (msg.includes('UNIQUE constraint failed')) {
+       console.info(`[ArcFlow] Payment retry detected (409) - already settled: ${msg}`);
        res.status(409).json({
          success: false,
          error: {
            code: 'PAYMENT_ALREADY_SETTLED',
-           message: 'This payment reference has already been processed.'
+           message: 'This payment was already processed.'
          }
        });
        return;

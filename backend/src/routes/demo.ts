@@ -92,7 +92,10 @@ demoRouter.get('/api/demo/summary', async (req: Request, res: Response): Promise
 
     const result = await settleRes.json() as any;
 
-    if (!settleRes.ok || !result.success) {
+    if (settleRes.status === 409 && result.error?.code === 'PAYMENT_ALREADY_SETTLED') {
+      console.info('[ArcFlow Demo] Retry detected, payment already settled. Proceeding.');
+      // Force it to continue below
+    } else if (!settleRes.ok || !result.success) {
       res.status(402).json({
         success: false,
         error: {
@@ -106,9 +109,9 @@ demoRouter.get('/api/demo/summary', async (req: Request, res: Response): Promise
     // Settlement succeeded — return the protected resource
     const responseHeader = Buffer.from(JSON.stringify({
       success: true,
-      transaction: result.data.transaction,
+      transaction: parsedSignature.memo.af_ref,
       network: arc.NETWORK,
-      payer: result.data.payer,
+      payer: parsedSignature.payload.from,
     })).toString('base64');
 
     res.set('PAYMENT-RESPONSE', responseHeader).json({

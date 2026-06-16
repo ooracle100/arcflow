@@ -72,6 +72,15 @@ export function initDatabase(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_webhooks_status     ON webhooks(status);
   `);
 
+  try {
+    db.exec(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_e2e_id 
+      ON payments(e2e_id) WHERE e2e_id IS NOT NULL;
+    `);
+  } catch (err) {
+    console.warn('[ArcFlow DB] Safe migration: idx_payments_e2e_id already exists or conflict occurred.', err);
+  }
+
   return db;
 }
 

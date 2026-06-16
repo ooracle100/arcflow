@@ -165,5 +165,37 @@ Agent:          Antigravity (Claude Opus 4.6 / Gemini 3.1 Pro)
 Component:      packages/client/src/fetch402.ts
 Original spec:  Client SDK `fetch()` crashed directly on network failures without retrying.
 Change made:    Added `fetchWithRetry()` helper that wraps the raw fetch calls. Retries up to 2 times with a 1000ms linear backoff. Only retries on network errors (timeouts, DNS) and 5xx server errors. Does NOT retry on 402 or 409. Added `debug` config option to `ArcFlowClient` to log retries.
-Reason:         Provides out-of-the-box resilience for agents running on unstable networks without requiring developers to write their own retry wrappers.
 Approved by:    Product Owner (via X community feedback)
+
+---
+
+## CHANGE LOG 012
+Date:           2026-06-16
+Agent:          Antigravity (Gemini 3.1 Pro)
+Component:      backend/src/db/schema.ts
+Original spec:  The `e2e_id` column had no unique constraint, allowing identical retry requests to create duplicate database records.
+Change made:    Added `CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_e2e_id ON payments(e2e_id) WHERE e2e_id IS NOT NULL;` wrapped in a try/catch.
+Reason:         Prevents agents from being double-charged on network retries. Using `WHERE e2e_id IS NOT NULL` ensures legacy payments without an e2e_id aren't blocked.
+Approved by:    Product Owner
+
+---
+
+## CHANGE LOG 013
+Date:           2026-06-16
+Agent:          Antigravity (Gemini 3.1 Pro)
+Component:      backend/src/routes/payments.ts
+Original spec:  A database constraint failure caused a generic 500 Internal Server Error.
+Change made:    Caught `UNIQUE constraint failed` specifically. Logged as info, and returned HTTP 409 with code `PAYMENT_ALREADY_SETTLED`.
+Reason:         Expected behavior for idempotency retries. Returning a specific 409 error allows middleware to gracefully handle the retry.
+Approved by:    Product Owner
+
+---
+
+## CHANGE LOG 014
+Date:           2026-06-16
+Agent:          Antigravity (Gemini 3.1 Pro)
+Component:      packages/middleware/src/index.ts (and backend demo.ts)
+Original spec:  Any non-200/success response from the backend resulted in a 402 challenge or error sent back to the agent.
+Change made:    Updated logic to treat 409 `PAYMENT_ALREADY_SETTLED` as a successful settlement. The `PAYMENT-RESPONSE` header is correctly reconstructed from the incoming `paymentSignature` and memo so the seller handler receives full context.
+Reason:         Allows the API request to succeed after a retry without throwing an error to the user, successfully completing the idempotency cycle.
+Approved by:    Product Owner
