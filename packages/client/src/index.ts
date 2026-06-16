@@ -18,12 +18,15 @@ export interface ArcFlowClientConfig {
   rpcUrl?: string;
   /** Optional ArcFlow dashboard API key */
   apiKey?: string;
+  /** Enable debug logging for retry attempts and network errors */
+  debug?: boolean;
 }
 
 export class ArcFlowClient {
   private privateKey: Hex;
   private rpcUrl: string;
   private apiKey?: string;
+  private debug: boolean;
   public gateway: ArcFlowGateway;
 
   constructor(config: ArcFlowClientConfig) {
@@ -33,6 +36,7 @@ export class ArcFlowClient {
     this.privateKey = config.privateKey;
     this.rpcUrl = config.rpcUrl ?? 'https://rpc.testnet.arc.network';
     this.apiKey = config.apiKey;
+    this.debug = config.debug ?? false;
     
     // Initialize the gateway helper for depositing USDC
     this.gateway = new ArcFlowGateway(this.privateKey, this.rpcUrl);
@@ -47,7 +51,7 @@ export class ArcFlowClient {
    * @returns Standard HTTP Response on success/failure
    */
   async fetch(url: string, options: FetchOptions = {}): Promise<Response> {
-    const result = await fetchWith402(url, this.privateKey, options, this.rpcUrl);
+    const result = await fetchWith402(url, this.privateKey, options, this.rpcUrl, this.debug);
     return result.response;
   }
 
@@ -59,7 +63,7 @@ export class ArcFlowClient {
    * @returns FetchResult with final Response, paid boolean, and paymentDetails receipt
    */
   async fetchWithReceipt(url: string, options: FetchOptions = {}): Promise<FetchResult> {
-    return await fetchWith402(url, this.privateKey, options, this.rpcUrl);
+    return await fetchWith402(url, this.privateKey, options, this.rpcUrl, this.debug);
   }
 
   /**

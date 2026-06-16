@@ -191,3 +191,27 @@ Decision:               Create a standalone GitHub repository (arcflow-examples)
 Reasoning:              The main repo contains the core SDK and backend. Examples should be clean, copy-pasteable, and isolated so developers aren't overwhelmed by mono-repo complexity.
 Impact:                 Main repo stays clean. Examples are accessible at github.com/ooracle100/arcflow-examples.
 Approved by:            Product Owner
+
+---
+
+## DECISION LOG 012
+Date:                   2026-06-16
+Agent:                  Antigravity (Claude Opus 4.6 / Gemini 3.1 Pro)
+Component:              Client SDK (fetch402.ts) — endToEndId generation
+Decision:               Use `keccak256(toHex(METHOD:URL:BODY))` to generate a deterministic `endToEndId` when the developer doesn't provide one.
+Alternatives considered: (1) UUID v5 (rejected — adds a dependency). (2) Random ID (previous behavior — rejected because it breaks retry idempotency).
+Reasoning:              If a network request drops, the agent doesn't know if the payment settled. If the agent retries with a random ID, the backend charges them twice. A deterministic hash of the request content ensures retries of the exact same request produce the same ID, triggering the backend's idempotency guard without any developer effort.
+Impact:                 Agents are protected from double-charging by default.
+Approved by:            Product Owner (via X community feedback)
+
+---
+
+## DECISION LOG 013
+Date:                   2026-06-16
+Agent:                  Antigravity (Claude Opus 4.6 / Gemini 3.1 Pro)
+Component:              Client SDK (fetch402.ts) — Auto-retry
+Decision:               Wrap client fetch calls in a retry loop (max 2 retries, 1000ms linear backoff) that only triggers on network errors (timeouts, DNS) and 5xx server errors.
+Alternatives considered: Retry on all errors (rejected — retrying a 4xx logic error or a 402 payment challenge is an infinite loop). No retry (previous behavior — rejected because it pushes complexity to the developer).
+Reasoning:              The primary failure mode for x402 nanopayments in the wild is transient network instability. The SDK should handle this transparently so agents don't crash.
+Impact:                 `arcflow.fetch()` is now resilient to network blips. Added a `debug` flag to the client config to expose retry logs.
+Approved by:            Product Owner (via X community feedback)

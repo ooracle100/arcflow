@@ -145,3 +145,25 @@ No deployment safety process existed. Schema changes were pushed directly to pro
 
 ### Prevention
 See `docs/DEPLOYMENT_SAFETY.md` for the new mandatory deployment rules.
+
+---
+
+## CHANGE LOG 010
+Date:           2026-06-16
+Agent:          Antigravity (Claude Opus 4.6 / Gemini 3.1 Pro)
+Component:      packages/client/src/fetch402.ts
+Original spec:  Client SDK generated a random `endToEndId` if the developer didn't pass one.
+Change made:    Added `generateDeterministicE2EId(url, method, body)` using keccak256. If no explicit ID is passed, the SDK auto-generates a deterministic one based on the request content.
+Reason:         Prevents agents from being double-charged on network retries. Retrying the exact same request now generates the same `endToEndId`, triggering the backend's idempotency guard.
+Approved by:    Product Owner (via X community feedback)
+
+---
+
+## CHANGE LOG 011
+Date:           2026-06-16
+Agent:          Antigravity (Claude Opus 4.6 / Gemini 3.1 Pro)
+Component:      packages/client/src/fetch402.ts
+Original spec:  Client SDK `fetch()` crashed directly on network failures without retrying.
+Change made:    Added `fetchWithRetry()` helper that wraps the raw fetch calls. Retries up to 2 times with a 1000ms linear backoff. Only retries on network errors (timeouts, DNS) and 5xx server errors. Does NOT retry on 402 or 409. Added `debug` config option to `ArcFlowClient` to log retries.
+Reason:         Provides out-of-the-box resilience for agents running on unstable networks without requiring developers to write their own retry wrappers.
+Approved by:    Product Owner (via X community feedback)

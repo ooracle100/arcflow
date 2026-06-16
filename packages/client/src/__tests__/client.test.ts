@@ -177,3 +177,157 @@ describe('ArcFlowClient 402 Negotiation and Retry', () => {
     }
   });
 });
+
+describe('Deterministic endToEndId Generation', () => {
+  it('produces the same ID for identical URL and body', async () => {
+    const { generateDeterministicE2EId } = await import('../fetch402.js');
+
+    const id1 = generateDeterministicE2EId('http://localhost:3000/api/weather', 'GET', null);
+    const id2 = generateDeterministicE2EId('http://localhost:3000/api/weather', 'GET', null);
+
+    assert.equal(id1, id2, 'Same URL + method + body should produce the same endToEndId');
+    assert.ok(id1.startsWith('E2E-'), 'Should start with E2E- prefix');
+    assert.equal(id1.length, 16, 'Should be E2E- plus 12 hex chars');
+  });
+
+  it('produces different IDs for different bodies', async () => {
+    const { generateDeterministicE2EId } = await import('../fetch402.js');
+
+    const id1 = generateDeterministicE2EId('http://localhost:3000/api/query', 'POST', '{"q":"weather"}');
+    const id2 = generateDeterministicE2EId('http://localhost:3000/api/query', 'POST', '{"q":"stocks"}');
+
+    assert.notEqual(id1, id2, 'Different bodies should produce different endToEndIds');
+  });
+
+  it('produces different IDs for different methods', async () => {
+    const { generateDeterministicE2EId } = await import('../fetch402.js');
+
+    const id1 = generateDeterministicE2EId('http://localhost:3000/api/data', 'GET', null);
+    const id2 = generateDeterministicE2EId('http://localhost:3000/api/data', 'POST', null);
+
+    assert.notEqual(id1, id2, 'Different methods should produce different endToEndIds');
+  });
+});
+
+describe('Network Failure Auto-Retry', () => {
+  it('retries on network error and succeeds on second attempt', async () => {
+    const originalFetch = global.fetch;
+    let fetchCallCount = 0;
+
+    global.fetch = async (_url: any, _options: any) => {
+      fetchCallCount++;
+      if (fetchCallCount === 1) {
+        throw new TypeError('fetch failed');
+      }
+      // Return a simple 200 on second attempt (no 402 challenge)
+      return {
+        status: 200,
+        ok: true,
+        headers: { get: () => null },
+        json: async () => ({ data: 'success' }),
+      } as any;
+    };
+
+    try {
+      const { fetchWith402 } = await import('../fetch402.js');
+
+      // Mock clockSync as initialized
+      clockSync.sync = async () => {};
+      (clockSync as any).offsetMs = 0;
+      (clockSync as any).initialized = true;
+
+      const result = await fetchWith402(
+        'http://localhost:3000/api/test',
+        MOCK_PRIVATE_KEY,
+        {},
+        'https://rpc.testnet.arc.network',
+        false
+      );
+
+      assert.equal(result.response.status, 200, 'Should eventually succeed');
+      assert.equal(result.paid, false, 'No payment should occur for a 200');
+      assert.equal(fetchCallCount, 2, 'Should have called fetch exactly twice (1 failure + 1 success)');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  it('retries on 5xx server error and succeeds on second attempt', async () => {
+    const originalFetch = global.fetch;
+    let fetchCallCount = 0;
+
+    global.fetch = async (_url: any, _options: any) => {
+      fetchCallCount++;
+      if (fetchCallCount === 1) {
+        return {
+          status: 503,
+          ok: false,
+          headers: { get: () => null },
+        } as any;
+      }
+      return {
+        status: 200,
+        ok: true,
+        headers: { get: () => null },
+        json: async () => ({ data: 'recovered' }),
+      } as any;
+    };
+
+    try {
+      const { fetchWith402 } = await import('../fetch402.js');
+
+      clockSync.sync = async () => {};
+      (clockSync as any).offsetMs = 0;
+      (clockSync as any).initialized = true;
+
+      const result = await fetchWith402(
+        'http://localhost:3000/api/test',
+        MOCK_PRIVATE_KEY,
+        {},
+        'https://rpc.testnet.arc.network',
+        false
+      );
+
+      assert.equal(result.response.status, 200, 'Should recover after 503');
+      assert.equal(fetchCallCount, 2, 'Should have retried once');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  it('does NOT retry on 402 payment challenge', async () => {
+    const originalFetch = global.fetch;
+    let fetchCallCount = 0;
+
+    global.fetch = async (_url: any, _options: any) => {
+      fetchCallCount++;
+      // Always return 402 with no PAYMENT-REQUIRED header (incomplete challenge)
+      return {
+        status: 402,
+        ok: false,
+        headers: { get: () => null },
+      } as any;
+    };
+
+    try {
+      const { fetchWith402 } = await import('../fetch402.js');
+
+      clockSync.sync = async () => {};
+      (clockSync as any).offsetMs = 0;
+      (clockSync as any).initialized = true;
+
+      const result = await fetchWith402(
+        'http://localhost:3000/api/test',
+        MOCK_PRIVATE_KEY,
+        {},
+        'https://rpc.testnet.arc.network',
+        false
+      );
+
+      assert.equal(result.response.status, 402, 'Should return 402 without retrying');
+      assert.equal(fetchCallCount, 1, 'Should NOT retry on 402 — it is a payment challenge, not an error');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+});

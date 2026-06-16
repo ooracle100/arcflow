@@ -1,7 +1,7 @@
 // fetch402.ts — Intercepts HTTP 402 challenges, negotiates EIP-712 signatures, and retries.
 // Provides a transparent, seamless fetch client wrapper for paywalled APIs.
 
-import { type Hex } from 'viem';
+import { type Hex, keccak256, toHex } from 'viem';
 import { signPaymentAuthorization, type SigningResult, type ArcFlowMemo } from './signer.js';
 import { receiptStore, type PaymentReceipt } from './receipt.js';
 import { clockSync } from './clockSync.js';
@@ -25,6 +25,59 @@ export interface FetchResult {
   };
 }
 
+// ─── Deterministic endToEndId generation ────────────────────────────────
+// Hashes METHOD:URL:BODY so retries of the same request always produce
+// the same ID, preventing double-charges without developer action.
+
+export function generateDeterministicE2EId(url: string, method: string, body?: string | object | null): string {
+  const bodyStr = typeof body === 'string' ? body : JSON.stringify(body ?? '');
+  const input = `${method.toUpperCase()}:${url}:${bodyStr}`;
+  const hash = keccak256(toHex(input));
+  return `E2E-${hash.slice(2, 14).toUpperCase()}`;
+}
+
+// ─── Fetch with retry on network errors and 5xx ─────────────────────────
+// Retries up to maxRetries times with linear backoff.
+// Does NOT retry on 402 (payment challenge) or 409 (already settled).
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  maxRetries = 2,
+  baseDelayMs = 1000,
+  debug = false
+): Promise<Response> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, init);
+
+      // Retry on 5xx server errors (temporary failures)
+      // Do NOT retry on 402 (payment challenge), 409 (already settled), or other 4xx
+      if (response.status >= 500) {
+        if (attempt < maxRetries) {
+          if (debug) console.log(`[ArcFlow] Server returned ${response.status}, retrying (${attempt + 1}/${maxRetries})...`);
+          await new Promise(r => setTimeout(r, baseDelayMs * (attempt + 1)));
+          continue;
+        }
+      }
+
+      return response;
+    } catch (err) {
+      // Network error (connection refused, DNS failure, timeout)
+      lastError = err instanceof Error ? err : new Error(String(err));
+
+      if (attempt < maxRetries) {
+        if (debug) console.log(`[ArcFlow] Network error: ${lastError.message}, retrying (${attempt + 1}/${maxRetries})...`);
+        await new Promise(r => setTimeout(r, baseDelayMs * (attempt + 1)));
+      }
+    }
+  }
+
+  throw lastError!;
+}
+
 /**
  * Performs a standard HTTP fetch, automatically resolving x402 payment requirements.
  * Bypasses the clock sync skew via clockSync.ts.
@@ -33,16 +86,21 @@ export interface FetchResult {
  * @param privateKey - Buyer wallet private key to sign the micropayments
  * @param options - Standard fetch options + custom x-e2e-id parameters
  * @param rpcUrl - Arc testnet RPC URL for clock synchronization
+ * @param debug - Enable debug logging for retry attempts
  * @returns FetchResult containing the final HTTP Response, paid status, and paymentDetails receipt
  */
 export async function fetchWith402(
   url: string,
   privateKey: Hex,
   options: FetchOptions = {},
-  rpcUrl = 'https://rpc.testnet.arc.network'
+  rpcUrl = 'https://rpc.testnet.arc.network',
+  debug = false
 ): Promise<FetchResult> {
   const method = options.method ?? 'GET';
   const headers = { ...(options.headers ?? {}) };
+
+  // Compute deterministic endToEndId if the developer didn't provide one
+  const effectiveEndToEndId = options.endToEndId ?? generateDeterministicE2EId(url, method, options.body);
   
   // 1. Ensure clockSync is initialized and synced
   if (!clockSync.isInitialized()) {
@@ -53,7 +111,7 @@ export async function fetchWith402(
     await clockSync.sync(publicClient);
   }
 
-  // 2. Execute initial request
+  // 2. Execute initial request (with auto-retry on network errors)
   const initRequestOptions: RequestInit = {
     ...options,
     headers: {
@@ -61,7 +119,7 @@ export async function fetchWith402(
     },
   };
   
-  let response = await fetch(url, initRequestOptions);
+  let response = await fetchWithRetry(url, initRequestOptions, 2, 1000, debug);
 
   // 3. If response status is not 402, return immediately
   if (response.status !== 402) {
@@ -109,7 +167,7 @@ export async function fetchWith402(
     chainId,
     endpoint,
     method,
-    endToEndId: options.endToEndId,
+    endToEndId: effectiveEndToEndId,
   });
 
   const paymentSignatureBase64 = Buffer.from(JSON.stringify({
@@ -118,22 +176,19 @@ export async function fetchWith402(
     memo: signingResult.memo,
   })).toString('base64');
 
-  // 6. Retry the request with the Payment-Signature header
+  // 6. Retry the request with the Payment-Signature header (with auto-retry on network errors)
   const retryHeaders: Record<string, string> = {
     ...headers,
     'payment-signature': paymentSignatureBase64,
+    'x-e2e-id': effectiveEndToEndId,
   };
-  
-  if (options.endToEndId) {
-    retryHeaders['x-e2e-id'] = options.endToEndId;
-  }
 
   const retryRequestOptions: RequestInit = {
     ...options,
     headers: retryHeaders,
   };
 
-  const retryResponse = await fetch(url, retryRequestOptions);
+  const retryResponse = await fetchWithRetry(url, retryRequestOptions, 2, 1000, debug);
 
   if (!retryResponse.ok) {
     return { response: retryResponse, paid: true };

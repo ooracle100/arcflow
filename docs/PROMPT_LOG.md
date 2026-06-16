@@ -540,3 +540,16 @@ Notes:          Live test correctly completed a full nanopayment on Arc Testnet 
 ## PROMPT: Create arcflow-examples Integration Repo (2026-06-13)
 **Task:** Create a new public GitHub repository called arcflow-examples that serves as the integration reference for developers.
 **Outcome:** Created express and nextjs examples with buyer and seller scripts. Initialized git, pushed to ooracle100/arcflow-examples using gh CLI, and updated main repo README to link to it.
+
+---
+
+## PROMPT LOG 003
+Date:           2026-06-16
+Session:        Phase 7 (Client Resiliency)
+Agent:          Antigravity (Claude Opus 4.6 / Gemini 3.1 Pro)
+Task:           Implement auto-retry and deterministic `endToEndId` in `arcflow.fetch()`
+Prompt:         "Read docs/DECISION_LOG.md and docs/CHANGE_LOG.md first to understand current state. Then implement two small improvements to packages/client/src/fetch402.ts: Fix 1 — Make endToEndId automatic... Fix 2 — Add auto-retry... add a unit test... Log both changes..."
+Output:         Implemented `generateDeterministicE2EId` and `fetchWithRetry`. Added tests. Updated all documentation logs. Client SDK is now resilient to network drops without double-charging.
+Quality:        yes
+Iterations:     1
+Notes:          The previous agent (Gemini) pushed a database schema change directly to `main` without testing, which crashed the Railway production backend. That commit was reverted. To prevent recurrence, created `docs/DEPLOYMENT_SAFETY.md` which mandates logging, testing, and approval before any code touches the backend. This fix was entirely client-side.
