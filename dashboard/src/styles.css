@@ -326,3 +326,92 @@ input:focus {
   height: 200px;
   margin-top: 16px;
 }
+
+/* ── Mobile Responsiveness (Max 768px) ── */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Layout changes */
+  #layout {
+    flex-direction: column;
+  }
+
+  #app {
+    padding: 16px;
+  }
+
+  /* Sidebar to horizontal scrollable tab bar */
+  #sidebar {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0;
+  }
+
+  .logo {
+    display: none;
+  }
+
+  .nav-links {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-links li a {
+    padding: 16px;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+  }
+
+  .nav-links li a.active {
+    border-left-color: transparent;
+    border-bottom-color: var(--accent-main);
+  }
+
+  .sidebar-footer {
+    display: none;
+  }
+
+  /* Collapse all grids to single column */
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Override inline spans for specific dashboard screens */
+  [style*="grid-column"] {
+    grid-column: span 1 !important;
+  }
+
+  /* Typography and overflow prevention */
+  .screen-header h1 {
+    font-size: 22px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+  pre {
+    font-size: 12px;
+  }
+
+  .code-string, td {
+    word-break: break-all;
+  }
+
+  /* Keep stat cards legible when stacked */
+  .stat-card {
+    padding: 16px;
+  }
+}

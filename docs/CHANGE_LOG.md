@@ -199,3 +199,14 @@ Original spec:  Any non-200/success response from the backend resulted in a 402 
 Change made:    Updated logic to treat 409 `PAYMENT_ALREADY_SETTLED` as a successful settlement. The `PAYMENT-RESPONSE` header is correctly reconstructed from the incoming `paymentSignature` and memo so the seller handler receives full context.
 Reason:         Allows the API request to succeed after a retry without throwing an error to the user, successfully completing the idempotency cycle.
 Approved by:    Product Owner
+
+---
+
+## CHANGE LOG 015
+Date:           2026-06-21
+Agent:          Antigravity (Gemini 3.1 Pro)
+Component:      dashboard/src/styles.css
+Original spec:  The dashboard layout used fixed column counts (.grid-2, .grid-3) and a fixed-width 260px sidebar, causing horizontal overflow and broken layouts on mobile screens (under 768px).
+Change made:    Appended a `@media (max-width: 768px)` query to styles.css. The sidebar was refactored into a top-anchored horizontal scrollable tab bar. All stat cards and layout grids were collapsed to single column (`1fr`). Text sizes and overflow handling for monospace data (like wallet addresses) were properly scaled. No HTML/JS/backend changes.
+Reason:         Provides a responsive and usable mobile experience for ArcFlow administrators while preserving the dark institutional aesthetic.
+Approved by:    Product Owner
